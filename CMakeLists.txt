@@ -19,12 +19,12 @@ install(FILES pcre.h DESTINATION ${CMAKE_INSTALL_PREFIX})
 # create the shared library file
 add_library(shared SHARED pcre.c)
 target_link_libraries(shared sqlite3 pcre)
-set_target_properties(shared PROPERTIES OUTPUT_NAME "pcre")
+set_target_properties(shared PROPERTIES OUTPUT_NAME "sqlite3-pcre")
 install(TARGETS shared DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # create the static library file
 add_library(static STATIC pcre.c)
 set_target_properties(static PROPERTIES COMPILE_FLAGS -DSQLITE_CORE)
 target_link_libraries(static sqlite3 pcre)
-set_target_properties(static PROPERTIES OUTPUT_NAME "pcre")
+set_target_properties(static PROPERTIES OUTPUT_NAME "sqlite3-pcre")
 install(TARGETS static DESTINATION ${CMAKE_INSTALL_PREFIX})

@@ -11,6 +11,9 @@
 #include <string.h>
 #include <pcre.h>
 #include <sqlite3ext.h>
+
+#include "pcre.h"
+
 SQLITE_EXTENSION_INIT1
 
 typedef struct {
@@ -111,7 +114,9 @@ int sqlite3_extension_init(sqlite3 *db, char **err, const sqlite3_api_routines *
 	SQLITE_EXTENSION_INIT2(api)
 	cache_entry *cache = calloc(CACHE_SIZE, sizeof(cache_entry));
 	if (!cache) {
-	    *err = "calloc: ENOMEM";
+        if (err) {
+            *err = "calloc: ENOMEM";
+        }
 	    return 1;
 	}
 	sqlite3_create_function(db, "REGEXP", 2, SQLITE_UTF8, cache, regexp, NULL, NULL);

@@ -13,16 +13,18 @@ pkg_search_module(PCRE REQUIRED libpcre)
 include_directories(AFTER SYSTEM ${PCRE_INCLUDE_DIRS})    # -Ipath/to/libpcre/include
 link_directories(${PCRE_LIBRARY_DIRS})                    # -Lpath/to/libpcre/lib
 
-# create the shared object file
+# install the header
+install(FILES pcre.h DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+# create the shared library file
 add_library(shared SHARED pcre.c)
 target_link_libraries(shared sqlite3 pcre)
-install(TARGETS shared DESTINATION ${CMAKE_INSTALL_PREFIX})
-set_target_properties(shared PROPERTIES PREFIX "")
 set_target_properties(shared PROPERTIES OUTPUT_NAME "pcre")
+install(TARGETS shared DESTINATION ${CMAKE_INSTALL_PREFIX})
 
+# create the static library file
 add_library(static STATIC pcre.c)
 set_target_properties(static PROPERTIES COMPILE_FLAGS -DSQLITE_CORE)
 target_link_libraries(static sqlite3 pcre)
-install(TARGETS static DESTINATION ${CMAKE_INSTALL_PREFIX})
-set_target_properties(static PROPERTIES PREFIX "")
 set_target_properties(static PROPERTIES OUTPUT_NAME "pcre")
+install(TARGETS static DESTINATION ${CMAKE_INSTALL_PREFIX})

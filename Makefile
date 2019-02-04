@@ -17,24 +17,24 @@ else
      SHARED_EXT = so
 endif
 
-TARGETS=pcre.${SHARED_EXT} pcre.a
+TARGETS=libpcre.${SHARED_EXT} libpcre.a
 
 .PHONY : install dist clean
 
 all: ${TARGETS}
 
-pcre.${SHARED_EXT} : pcre.c
+libpcre.${SHARED_EXT} : pcre.c
 	${CC} -shared -o $@ ${CFLAGS} -fPIC -W -Werror $< ${LIBS} $(LDFLAGS)
 
-pcre.a : pcre.c
+libpcre.a : pcre.c
 	${CC} -static -o $@ ${CFLAGS} -c -W -Werror $< ${LIBS} $(LDFLAGS) -DSQLITE_CORE
 
 install : ${TARGETS}
 ifeq ($(OS),Darwin)
 	mkdir -p ${DESTDIR}${prefix}/lib/sqlite3
 endif
-	${INSTALL} $(INFLAGS) -m755 pcre.${SHARED_EXT} ${DESTDIR}${prefix}/lib/sqlite3/pcre.${SHARED_EXT}
-	${INSTALL} $(INFLAGS) -m755 pcre.a ${DESTDIR}${prefix}/lib/sqlite3/pcre.a
+	${INSTALL} $(INFLAGS) -m755 libpcre.${SHARED_EXT} ${DESTDIR}${prefix}/lib/sqlite3/libpcre.${SHARED_EXT}
+	${INSTALL} $(INFLAGS) -m755 libpcre.a ${DESTDIR}${prefix}/lib/sqlite3/libpcre.a
 
 dist : clean
 	mkdir sqlite3-pcre-${VERSION}

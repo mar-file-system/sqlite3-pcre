@@ -14,7 +14,15 @@ include_directories(AFTER SYSTEM ${PCRE_INCLUDE_DIRS})    # -Ipath/to/libpcre/in
 link_directories(${PCRE_LIBRARY_DIRS})                    # -Lpath/to/libpcre/lib
 
 # create the shared object file
-add_library(sqlite3-pcre SHARED pcre.c)
-target_link_libraries(sqlite3-pcre sqlite3 pcre)
-install(TARGETS sqlite3-pcre DESTINATION ${CMAKE_INSTALL_PREFIX})
-set_target_properties(sqlite3-pcre PROPERTIES PREFIX "")
+add_library(shared SHARED pcre.c)
+target_link_libraries(shared sqlite3 pcre)
+install(TARGETS shared DESTINATION ${CMAKE_INSTALL_PREFIX})
+set_target_properties(shared PROPERTIES PREFIX "")
+set_target_properties(shared PROPERTIES OUTPUT_NAME "pcre")
+
+add_library(static STATIC pcre.c)
+set_target_properties(static PROPERTIES COMPILE_FLAGS -DSQLITE_CORE)
+target_link_libraries(static sqlite3 pcre)
+install(TARGETS static DESTINATION ${CMAKE_INSTALL_PREFIX})
+set_target_properties(static PROPERTIES PREFIX "")
+set_target_properties(static PROPERTIES OUTPUT_NAME "pcre")

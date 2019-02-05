@@ -1,10 +1,16 @@
 VERSION=0.1.1
 CC?=cc
-CFLAGS=$(shell pkg-config --cflags sqlite3 libpcre)
-LIBS=$(shell pkg-config --libs sqlite3 libpcre)
-AR=ar
-INSTALL=install
-prefix =? /usr
+CFLAGS=
+LDFLAGS=
+PCRE_CFLAGS     ?= $(shell pkg-config --cflags libpcre)
+PCRE_LDFLAGS    ?= $(shell pkg-config --libs   libpcre)
+SQLITE3_CFLAGS  ?= $(shell pkg-config --cflags sqlite3)
+SQLITE3_LDFLAGS ?= $(shell pkg-config --libs   sqlite3)
+INSTALL?=install
+prefix ?= /usr
+
+CFLAGS  += $(SQLITE3_CFLAGS) $(PCRE_CFLAGS)
+LDFLAGS += $(SQLITE3_LDFLAGS) $(PCRE_LDFLAGS)
 
 OS=$(shell uname -s)
 ifeq ($(OS),Darwin)
@@ -24,10 +30,10 @@ TARGETS=libsqlite3-pcre.${SHARED_EXT} libsqlite3-pcre.a
 all: ${TARGETS}
 
 libsqlite3-pcre.${SHARED_EXT} : pcre.c
-	${CC} -shared -o $@ ${CFLAGS} -fPIC -W -Werror $< ${LIBS} $(LDFLAGS)
+	${CC} -shared -o $@ ${CFLAGS} -fPIC -W -Werror $< $(LDFLAGS)
 
 libsqlite3-pcre.a : pcre.c
-	${CC} -static -o $@ ${CFLAGS} -c -W -Werror $< ${LIBS} $(LDFLAGS) -DSQLITE_CORE
+	${CC} -static -o $@ ${CFLAGS} -c -W -Werror $< -DSQLITE_CORE
 
 install : ${TARGETS}
 ifeq ($(OS),Darwin)

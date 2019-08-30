@@ -119,5 +119,5 @@ int sqlite3_extension_init(sqlite3 *db, char **err, const sqlite3_api_routines *
         }
 	    return 1;
 	}
-	return sqlite3_create_function(db, "REGEXP", 2, SQLITE_UTF8, cache, regexp, NULL, NULL);
+	return sqlite3_create_function_v2(db, "REGEXP", 2, SQLITE_UTF8, cache, regexp, NULL, NULL, free);
 }

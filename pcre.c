@@ -37,75 +37,75 @@ void regexp(sqlite3_context *ctx, int argc, sqlite3_value **argv)
 
     re = (const char *) sqlite3_value_text(argv[0]);
     if (!re) {
-	sqlite3_result_error(ctx, "no regexp", -1);
-	return;
+        sqlite3_result_error(ctx, "no regexp", -1);
+        return;
     }
 
     str = (const char *) sqlite3_value_text(argv[1]);
     if (!str) {
-	sqlite3_result_error(ctx, "no string", -1);
-	return;
+        sqlite3_result_error(ctx, "no string", -1);
+        return;
     }
 
     /* simple LRU cache */
     {
-	int i;
-	int found = 0;
-	cache_entry *cache = sqlite3_user_data(ctx);
+        int i;
+        int found = 0;
+        cache_entry *cache = sqlite3_user_data(ctx);
 
-	assert(cache);
+        assert(cache);
 
-	for (i = 0; i < CACHE_SIZE && cache[i].s; i++)
-	    if (strcmp(re, cache[i].s) == 0) {
-		found = 1;
-		break;
-	    }
-	if (found) {
-	    if (i > 0) {
-		cache_entry c = cache[i];
-		memmove(cache + 1, cache, i * sizeof(cache_entry));
-		cache[0] = c;
-	    }
-	}
-	else {
-	    cache_entry c;
-	    const char *err;
-	    int pos;
-	    c.p = pcre_compile(re, 0, &err, &pos, NULL);
-	    if (!c.p) {
-		char *e2 = sqlite3_mprintf("%s: %s (offset %d)", re, err, pos);
-		sqlite3_result_error(ctx, e2, -1);
-		sqlite3_free(e2);
-		return;
-	    }
-	    c.e = pcre_study(c.p, 0, &err);
-	    c.s = strdup(re);
-	    if (!c.s) {
-		sqlite3_result_error(ctx, "strdup: ENOMEM", -1);
-		pcre_free(c.p);
-		pcre_free(c.e);
-		return;
-	    }
-	    i = CACHE_SIZE - 1;
-	    if (cache[i].s) {
-		free(cache[i].s);
-		assert(cache[i].p);
-		pcre_free(cache[i].p);
-		pcre_free(cache[i].e);
-	    }
-	    memmove(cache + 1, cache, i * sizeof(cache_entry));
-	    cache[0] = c;
-	}
-	p = cache[0].p;
-	e = cache[0].e;
+        for (i = 0; i < CACHE_SIZE && cache[i].s; i++)
+            if (strcmp(re, cache[i].s) == 0) {
+                found = 1;
+                break;
+            }
+        if (found) {
+            if (i > 0) {
+                cache_entry c = cache[i];
+                memmove(cache + 1, cache, i * sizeof(cache_entry));
+                cache[0] = c;
+            }
+        }
+        else {
+            cache_entry c;
+            const char *err;
+            int pos;
+            c.p = pcre_compile(re, 0, &err, &pos, NULL);
+            if (!c.p) {
+                char *e2 = sqlite3_mprintf("%s: %s (offset %d)", re, err, pos);
+                sqlite3_result_error(ctx, e2, -1);
+                sqlite3_free(e2);
+                return;
+            }
+            c.e = pcre_study(c.p, 0, &err);
+            c.s = strdup(re);
+            if (!c.s) {
+                sqlite3_result_error(ctx, "strdup: ENOMEM", -1);
+                pcre_free(c.p);
+                pcre_free(c.e);
+                return;
+            }
+            i = CACHE_SIZE - 1;
+            if (cache[i].s) {
+                free(cache[i].s);
+                assert(cache[i].p);
+                pcre_free(cache[i].p);
+                pcre_free(cache[i].e);
+            }
+            memmove(cache + 1, cache, i * sizeof(cache_entry));
+            cache[0] = c;
+        }
+        p = cache[0].p;
+        e = cache[0].e;
     }
 
     {
-	int rc;
-	assert(p);
-	rc = pcre_exec(p, e, str, strlen(str), 0, 0, NULL, 0);
-	sqlite3_result_int(ctx, rc >= 0);
-	return;
+        int rc;
+        assert(p);
+        rc = pcre_exec(p, e, str, strlen(str), 0, 0, NULL, 0);
+        sqlite3_result_int(ctx, rc >= 0);
+        return;
     }
 }
 

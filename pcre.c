@@ -9,17 +9,17 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pcre.h>
 #include <sqlite3ext.h>
 
-#include "pcre.h"
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include "pcre2.h"
 
 SQLITE_EXTENSION_INIT1
 
 typedef struct {
     char *s;
-    pcre *p;
-    pcre_extra *e;
+    pcre2_code_8 *p;
+    pcre2_match_data_8 *m;
 } cache_entry;
 
 #ifndef CACHE_SIZE
@@ -29,19 +29,19 @@ typedef struct {
 static
 void regexp(sqlite3_context *ctx, int argc, sqlite3_value **argv)
 {
-    const char *re, *str;
-    pcre *p;
-    pcre_extra *e;
+    const char unsigned *re, *str;
+    pcre2_code_8 *p;
+    pcre2_match_data_8 *m;
 
     assert(argc == 2);
 
-    re = (const char *) sqlite3_value_text(argv[0]);
+    re = sqlite3_value_text(argv[0]);
     if (!re) {
         sqlite3_result_error(ctx, "no regexp", -1);
         return;
     }
 
-    str = (const char *) sqlite3_value_text(argv[1]);
+    str = sqlite3_value_text(argv[1]);
     if (!str) {
         sqlite3_result_int(ctx, 0);
         return;
@@ -56,7 +56,7 @@ void regexp(sqlite3_context *ctx, int argc, sqlite3_value **argv)
         assert(cache);
 
         for (i = 0; i < CACHE_SIZE && cache[i].s; i++)
-            if (strcmp(re, cache[i].s) == 0) {
+            if (strcmp((char *) re, cache[i].s) == 0) {
                 found = 1;
                 break;
             }
@@ -69,42 +69,42 @@ void regexp(sqlite3_context *ctx, int argc, sqlite3_value **argv)
         }
         else {
             cache_entry c;
-            const char *err;
-            int pos;
-            c.p = pcre_compile(re, 0, &err, &pos, NULL);
+            int err;
+            size_t pos;
+            c.p = pcre2_compile_8(re, PCRE2_ZERO_TERMINATED, 0, &err, &pos, NULL);
             if (!c.p) {
                 char *e2 = sqlite3_mprintf("%s: %s (offset %d)", re, err, pos);
                 sqlite3_result_error(ctx, e2, -1);
                 sqlite3_free(e2);
                 return;
             }
-            c.e = pcre_study(c.p, 0, &err);
-            c.s = strdup(re);
+            c.m = pcre2_match_data_create_8(0, NULL);
+            c.s = strdup((char *) re);
             if (!c.s) {
                 sqlite3_result_error(ctx, "strdup: ENOMEM", -1);
-                pcre_free(c.p);
-                pcre_free(c.e);
+                pcre2_code_free_8(c.p);
+                pcre2_match_data_free_8(cache[i].m);
                 return;
             }
             i = CACHE_SIZE - 1;
             if (cache[i].s) {
                 free(cache[i].s);
                 assert(cache[i].p);
-                pcre_free(cache[i].p);
-                pcre_free(cache[i].e);
+                pcre2_code_free_8(cache[i].p);
+                pcre2_match_data_free_8(cache[i].m);
             }
             memmove(cache + 1, cache, i * sizeof(cache_entry));
             cache[0] = c;
         }
         p = cache[0].p;
-        e = cache[0].e;
+        m = cache[0].m;
     }
 
     {
         int rc;
         assert(p);
-        rc = pcre_exec(p, e, str, strlen(str), 0, 0, NULL, 0);
-        sqlite3_result_int(ctx, rc >= 0);
+        rc = pcre2_match_8(p, str, PCRE2_ZERO_TERMINATED, 0, 0, m, NULL);
+        sqlite3_result_int(ctx, rc > 0);
         return;
     }
 }

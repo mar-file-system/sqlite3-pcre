@@ -1,4 +1,4 @@
-This is sqlite3-pcre, an extension for sqlite3 that uses libpcre to provide
+This is sqlite3-pcre, an extension for sqlite3 that uses libpcre2 to provide
 the REGEXP() function.
 
 The code was written by Alexey Tourbin and can be found at:
@@ -6,7 +6,7 @@ The code was written by Alexey Tourbin and can be found at:
 http://git.altlinux.org/people/at/packages/?p=sqlite3-pcre.git
 
 The build system has been changed from make to CMake + make.
-The libraries `sqlite3` and `pcre` are prerequisites.
+The libraries `sqlite3` and `pcre2-8` (compiled with `-fPIC`) are prerequisites.
 
 Run
 

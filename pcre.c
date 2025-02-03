@@ -109,7 +109,7 @@ void regexp(sqlite3_context *ctx, int argc, sqlite3_value **argv)
     }
 }
 
-int sqlite3_extension_init(sqlite3 *db, char **err, const sqlite3_api_routines *api)
+int sqlite3_pcre2_init(sqlite3 *db, char **err, const sqlite3_api_routines *api)
 {
 	SQLITE_EXTENSION_INIT2(api)
 	cache_entry *cache = calloc(CACHE_SIZE, sizeof(cache_entry));

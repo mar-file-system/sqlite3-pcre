@@ -3,6 +3,6 @@
 
 #include <sqlite3.h>
 
-int sqlite3_extension_init(sqlite3 *db, char **err, const sqlite3_api_routines *api);
+int sqlite3_pcre2_init(sqlite3 *db, char **err, const sqlite3_api_routines *api);
 
 #endif

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.16.0)
 project(sqlite3-pcre LANGUAGES C)
 
 find_package(PkgConfig REQUIRED)

@@ -9,22 +9,34 @@ include_directories(AFTER SYSTEM ${SQLITE3_INCLUDE_DIRS}) # -Ipath/to/sqlite3/in
 link_directories(${SQLITE3_LIBRARY_DIRS})                 # -Lpath/to/sqlite3/lib
 
 # search for pcre2 installation
-pkg_search_module(PCRE2 REQUIRED libpcre2-8)
-include_directories(AFTER SYSTEM ${PCRE2_INCLUDE_DIRS})    # -Ipath/to/libpcre2/include
-link_directories(${PCRE2_LIBRARY_DIRS})                    # -Lpath/to/libpcre2/lib
+if (CYGWIN)
+  pkg_search_module(PCRE2 REQUIRED libpcre2-8)
+else()
+  pkg_search_module(PCRE2 STATIC REQUIRED libpcre2-8)
+endif()
+include_directories(AFTER SYSTEM ${PCRE2_INCLUDE_DIRS})   # -Ipath/to/libpcre2/include
 
 # install the header
 install(FILES pcre.h DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # create the shared library file
 add_library(shared SHARED pcre.c)
-target_link_libraries(shared sqlite3 pcre2-8)
+if (CYGWIN)
+  target_link_libraries(shared sqlite3 pcre2-8)
+else()
+  target_link_libraries(shared sqlite3 "${PCRE2_LIBRARY_DIRS}/libpcre2-8.a")
+endif()
 set_target_properties(shared PROPERTIES OUTPUT_NAME "sqlite3-pcre")
 install(TARGETS shared DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # create the static library file
 add_library(static STATIC pcre.c)
 set_target_properties(static PROPERTIES COMPILE_FLAGS -DSQLITE_CORE)
-target_link_libraries(static sqlite3 pcre2-8)
+if (CYGWIN)
+  target_link_libraries(static sqlite3 pcre2)
+else()
+  # pcre2-static dependency is propogated, not linked in
+  target_link_libraries(static sqlite3 "${PCRE2_LIBRARY_DIRS}/libpcre2-8.a")
+endif()
 set_target_properties(static PROPERTIES OUTPUT_NAME "sqlite3-pcre")
 install(TARGETS static DESTINATION ${CMAKE_INSTALL_PREFIX})
